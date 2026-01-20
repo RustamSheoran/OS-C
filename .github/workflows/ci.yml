@@ -16,7 +16,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y qemu qemu-kvm ovmf build-essential
+        sudo apt install -y qemu-system-x86 qemu-kvm ovmf build-essential
 
     - name: Install toolchain
       run: |
