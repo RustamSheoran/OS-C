@@ -9,6 +9,7 @@ struct task {
     uint64_t cr3;
     int state;
     struct task *next;
+    uint64_t canary;
     char stack[4096];
 };
 
