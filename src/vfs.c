@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "vfs.h"
 #include "pmm.h"
 #include "block.h"
@@ -10,7 +11,7 @@ int num_vnodes;
 int ramfs_read(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
     if (offset >= vn->size) return 0;
     if (offset + size > vn->size) size = vn->size - offset;
-    memcpy(buf, (uint8_t *)vn->data + offset, size);
+    __builtin_memcpy(buf, (uint8_t *)vn->data + offset, size);
     return size;
 }
 
@@ -24,7 +25,7 @@ int ramfs_write(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
 
     }
 
-    memcpy((uint8_t *)vn->data + offset, buf, size);
+    __builtin_memcpy((uint8_t *)vn->data + offset, buf, size);
 
     return size;
 
@@ -66,62 +67,20 @@ int ntfs_write(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
 
     if (offset + size > vn->size) return 0;
 
-    memcpy((uint8_t *)vn->data + offset, buf, size);
+    __builtin_memcpy((uint8_t *)vn->data + offset, buf, size);
 
     return size;
 
 }
 
-int ntfs_write(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
-
-    // Stub: NTFS write
-
-    return 0;
-
-}
-
 struct vfs_ops ntfs_ops = {
-
     .read = ntfs_read,
-
     .write = ntfs_write
-
 };
 
 struct vfs_ops ramfs_ops = {
     .read = ramfs_read,
     .write = ramfs_write
-};
-
-struct ntfs_boot {
-    uint8_t jump[3];
-    char oem[8];
-    uint16_t bytes_per_sector;
-    uint8_t sectors_per_cluster;
-    uint16_t reserved_sectors;
-    uint8_t zero1[3];
-    uint16_t not_used;
-    uint8_t media;
-    uint16_t zero2;
-    uint16_t sectors_per_track;
-    uint16_t heads;
-    uint32_t hidden_sectors;
-    uint32_t not_used2;
-    uint32_t not_used3;
-    uint64_t total_sectors;
-    uint64_t mft_lcn;
-    uint64_t mftmirr_lcn;
-    int8_t clusters_per_mft_record;
-    uint8_t zero3[3];
-    int8_t clusters_per_index_record;
-    uint8_t zero4[3];
-    uint64_t volume_serial;
-    uint32_t checksum;
-};
-
-struct vfs_ops ntfs_ops = {
-    .read = ntfs_read,
-    .write = ntfs_write
 };
 
 void vfs_init() {

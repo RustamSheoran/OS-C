@@ -2,6 +2,7 @@
 #define VFS_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 struct vnode {
     struct vfs_ops *ops;
