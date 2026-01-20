@@ -3,6 +3,16 @@
 #include "pmm.h"
 #include "task.h"
 #include "fs.h"
+
+// Extern declarations for modular tests
+extern int test_efi_init();
+extern int test_serial_output();
+extern int test_pfa_stress();
+extern int test_heap_stress();
+extern int test_paging_stress();
+extern int test_task_creation();
+extern int test_preemption();
+extern int test_fairness();
 #include <stdint.h>
 
 extern void *kmalloc(size_t size);
@@ -27,13 +37,36 @@ int run_tests() {
     serial_puts("Boot test: PASS\n");
     passed++;
 
+    // Boot tests
+    total += 2;
+    if (test_efi_init()) {
+        serial_puts("EFI init: PASS\n");
+        passed++;
+    } else {
+        serial_puts("EFI init: FAIL\n");
+    }
+
+    if (test_serial_output()) {
+        serial_puts("Serial output: PASS\n");
+        passed++;
+    } else {
+        serial_puts("Serial output: FAIL\n");
+    }
+
     // Memory tests
-    total += 3;
+    total += 5;
     if (test_pfa_alloc_free()) {
         serial_puts("PFA alloc/free: PASS\n");
         passed++;
     } else {
         serial_puts("PFA alloc/free: FAIL\n");
+    }
+
+    if (test_pfa_stress()) {
+        serial_puts("PFA stress: PASS\n");
+        passed++;
+    } else {
+        serial_puts("PFA stress: FAIL\n");
     }
 
     if (test_paging_map()) {
@@ -50,13 +83,34 @@ int run_tests() {
         serial_puts("Heap alloc: FAIL\n");
     }
 
-    // Scheduler test
-    total++;
+    if (test_heap_stress()) {
+        serial_puts("Heap stress: PASS\n");
+        passed++;
+    } else {
+        serial_puts("Heap stress: FAIL\n");
+    }
+
+    // Scheduler tests
+    total += 3;
     if (test_scheduler()) {
         serial_puts("Scheduler: PASS\n");
         passed++;
     } else {
         serial_puts("Scheduler: FAIL\n");
+    }
+
+    if (test_task_creation()) {
+        serial_puts("Task creation: PASS\n");
+        passed++;
+    } else {
+        serial_puts("Task creation: FAIL\n");
+    }
+
+    if (test_fairness()) {
+        serial_puts("Scheduler fairness: PASS\n");
+        passed++;
+    } else {
+        serial_puts("Scheduler fairness: FAIL\n");
     }
 
     // Syscall test

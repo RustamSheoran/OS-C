@@ -11,10 +11,10 @@ SRC_DIR = src
 OBJ_DIR = obj
 SCRIPT_DIR = scripts
 
-SRCS = $(SRC_DIR)/efi_main.c $(SRC_DIR)/kernel.c $(SRC_DIR)/pmm.c $(SRC_DIR)/paging.c $(SRC_DIR)/idt.c $(SRC_DIR)/interrupts.c $(SRC_DIR)/scheduler.c $(SRC_DIR)/syscall.c $(SRC_DIR)/fs.c $(SRC_DIR)/smp.c
+SRCS = $(SRC_DIR)/efi_main.c $(SRC_DIR)/kernel.c $(SRC_DIR)/pmm.c $(SRC_DIR)/paging.c $(SRC_DIR)/idt.c $(SRC_DIR)/interrupts.c $(SRC_DIR)/scheduler.c $(SRC_DIR)/syscall.c $(SRC_DIR)/fs.c $(SRC_DIR)/smp.c $(SRC_DIR)/ata.c $(SRC_DIR)/net.c $(SRC_DIR)/graphics.c tests/test_runner.c tests/boot_test.c tests/memory_test.c tests/scheduler_test.c
 
 ASMS = $(SRC_DIR)/start.S $(SRC_DIR)/interrupts.S $(SRC_DIR)/ap_trampoline.S
-OBJS = $(OBJ_DIR)/efi_main.o $(OBJ_DIR)/kernel.o $(OBJ_DIR)/pmm.o $(OBJ_DIR)/paging.o $(OBJ_DIR)/idt.o $(OBJ_DIR)/interrupts.o $(OBJ_DIR)/scheduler.o $(OBJ_DIR)/syscall.o $(OBJ_DIR)/fs.o $(OBJ_DIR)/smp.o $(OBJ_DIR)/start.o $(OBJ_DIR)/interrupts.o $(OBJ_DIR)/ap_trampoline.o
+OBJS = $(OBJ_DIR)/efi_main.o $(OBJ_DIR)/kernel.o $(OBJ_DIR)/pmm.o $(OBJ_DIR)/paging.o $(OBJ_DIR)/idt.o $(OBJ_DIR)/interrupts.o $(OBJ_DIR)/scheduler.o $(OBJ_DIR)/syscall.o $(OBJ_DIR)/fs.o $(OBJ_DIR)/smp.o $(OBJ_DIR)/ata.o $(OBJ_DIR)/net.o $(OBJ_DIR)/graphics.o $(OBJ_DIR)/test_runner.o $(OBJ_DIR)/boot_test.o $(OBJ_DIR)/memory_test.o $(OBJ_DIR)/scheduler_test.o $(OBJ_DIR)/start.o $(OBJ_DIR)/interrupts.o $(OBJ_DIR)/ap_trampoline.o
 
 $(shell mkdir -p $(OBJ_DIR))
 
