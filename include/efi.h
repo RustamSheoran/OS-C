@@ -15,6 +15,8 @@ typedef uint64_t EFI_VIRTUAL_ADDRESS;
 #define EFIAPI __attribute__((ms_abi))
 
 #define EFI_SUCCESS 0ULL
+#define EFI_INVALID_PARAMETER 2ULL
+#define EFI_BUFFER_TOO_SMALL 5ULL
 
 typedef struct {
     UINT32 Data1;
@@ -59,6 +61,7 @@ typedef struct EFI_BOOT_SERVICES {
     EFI_STATUS (EFIAPI *GetMemoryMap)(UINTN *MemoryMapSize, EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN *MapKey, UINTN *DescriptorSize, UINT32 *DescriptorVersion);
     char _pad3[12];
     EFI_STATUS (EFIAPI *ExitBootServices)(EFI_HANDLE ImageHandle, UINTN MapKey);
+    EFI_STATUS (EFIAPI *HandleProtocol)(EFI_HANDLE Handle, EFI_GUID *Protocol, void **Interface);
     // Add more as needed
 } EFI_BOOT_SERVICES;
 

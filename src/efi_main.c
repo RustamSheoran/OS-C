@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 #include "efi.h"
 
 EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable) {
@@ -39,7 +40,7 @@ EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
     // Get kernel image base
     EFI_GUID loaded_image_guid = EFI_LOADED_IMAGE_PROTOCOL_GUID;
     EFI_LOADED_IMAGE_PROTOCOL *loaded_image;
-    EFI_STATUS Status = SystemTable->BootServices->HandleProtocol(ImageHandle, &loaded_image_guid, (void **)&loaded_image);
+    EFI_STATUS Status2 = SystemTable->BootServices->HandleProtocol(ImageHandle, &loaded_image_guid, (void **)&loaded_image);
     uint64_t kernel_base = 0;
     if (Status == EFI_SUCCESS) {
         kernel_base = (uint64_t)loaded_image->ImageBase;
