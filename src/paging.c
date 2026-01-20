@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "pmm.h"
 #include "paging.h"
+#include "io.h"
 
 #define PAGE_SIZE 4096
 #define PRESENT (1ULL << 0)
@@ -32,6 +33,17 @@ void paging_init(uint64_t kernel_base) {
 
     // Set CR3
     __asm__ volatile ("mov %0, %%cr3" : : "r"(pml4) : "memory");
+
+    // Map LAPIC
+    uint64_t lapic_phys = rdmsr(0x1B) & ~0xFFFULL;
+    for (uint64_t offset = 0; offset < 0x1000; offset += PAGE_SIZE) {
+        map_page(lapic_phys + offset, 0xFFFFFFFFFF000000ULL + offset, PRESENT | WRITE);
+    }
+
+    // Map IOAPIC
+    for (uint64_t offset = 0; offset < 0x1000; offset += PAGE_SIZE) {
+        map_page(0xFEC00000 + offset, 0xFFFFFFFFFF001000ULL + offset, PRESENT | WRITE);
+    }
 }
 
 void map_page(uint64_t virt, uint64_t phys, uint64_t flags) {

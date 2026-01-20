@@ -63,6 +63,11 @@ void print_num(uint64_t n) {
     while (i--) serial_putc(buf[i]);
 }
 
+void ap_entry() {
+    serial_puts("AP online\n");
+    while (1);
+}
+
 void task_func() {
     while (1) {
         serial_putc('T');
@@ -78,6 +83,7 @@ void kernel_main(EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN MapSize, UINTN Descript
     pmm_init(MemoryMap, MapSize, DescriptorSize);
     paging_init(kernel_base);
     init_interrupts();
+    smp_init();
     init_scheduler();
     create_task(task_func);
     fs_init();
