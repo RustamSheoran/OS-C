@@ -13,10 +13,12 @@ void net_init() {
 }
 
 void net_send_packet(uint8_t *data, uint32_t len) {
+    (void)data; (void)len; // Suppress unused parameter warnings
     // Stub
 }
 
 uint32_t net_recv_packet(uint8_t *buf) {
+    (void)buf; // Suppress unused parameter warning
     // Stub
     return 0;
 }

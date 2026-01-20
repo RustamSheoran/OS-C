@@ -3,6 +3,7 @@
 #include "task.h"
 
 void syscall_dispatch(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
+    (void)arg3; // Suppress unused parameter warning
     switch (syscall_num) {
         case 0: // read
             if (arg1 == 0) { // stdin

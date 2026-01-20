@@ -32,7 +32,8 @@ void *kmalloc(size_t size) {
 }
 
 void kfree(void *ptr) {
-    // Simple bump, no free
+    (void)ptr; // Suppress unused parameter warning
+    // TODO: Implement free
 }
 
 int strcmp(const char *a, const char *b) {
