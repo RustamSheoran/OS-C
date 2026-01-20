@@ -135,6 +135,9 @@ void kernel_main(EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN MapSize, UINTN Descript
             serial_puts("Free pages: ");
             print_num(pmm_get_free_pages());
             serial_putc('\n');
+        } else if (strcmp(cmd, "draw") == 0) {
+            draw_pixel(100, 100, 0xFF0000);
+            serial_puts("Pixel drawn\n");
         } else if (strcmp(cmd, "") == 0) {
             // do nothing
         } else {
