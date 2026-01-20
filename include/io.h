@@ -23,6 +23,26 @@ static inline void wrmsr(uint32_t msr, uint64_t val) {
     __asm__ volatile ("wrmsr" : : "c"(msr), "a"(val & 0xFFFFFFFF), "d"(val >> 32));
 }
 
+static inline uint16_t inw(uint16_t port) {
+    uint16_t val;
+    __asm__ volatile ("inw %1, %0" : "=a"(val) : "Nd"(port));
+    return val;
+}
+
+static inline void outw(uint16_t port, uint16_t val) {
+    __asm__ volatile ("outw %0, %1" : : "a"(val), "Nd"(port));
+}
+
+static inline uint32_t inl(uint16_t port) {
+    uint32_t val;
+    __asm__ volatile ("inl %1, %0" : "=a"(val) : "Nd"(port));
+    return val;
+}
+
+static inline void outl(uint16_t port, uint32_t val) {
+    __asm__ volatile ("outl %0, %1" : : "a"(val), "Nd"(port));
+}
+
 char serial_getc() {
     while ((inb(0x3F8 + 5) & 1) == 0);
     return inb(0x3F8);
