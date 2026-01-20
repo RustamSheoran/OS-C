@@ -1,4 +1,3 @@
-#include <string.h>
 #include "elf.h"
 #include "pmm.h"
 #include "paging.h"
@@ -25,9 +24,9 @@ uint64_t load_elf(void *elf_data, uint64_t *entry) {
                 map_page(addr, phys, flags);
             }
             // Copy data
-            memcpy((void *)vaddr, (uint8_t *)elf_data + phdr[i].p_offset, filesz);
+            __builtin_memcpy((void *)vaddr, (uint8_t *)elf_data + phdr[i].p_offset, filesz);
             // Zero rest
-            memset((uint8_t *)vaddr + filesz, 0, memsz - filesz);
+            __builtin_memset((uint8_t *)vaddr + filesz, 0, memsz - filesz);
         }
     }
     return 0;
