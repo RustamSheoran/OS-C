@@ -80,7 +80,7 @@ void nvme_submit_cmd(struct nvme_cmd *cmd) {
     nvme_regs[NVME_SQ0TDBL / 4] = 1;
 }
 
-void nvme_read_sector(uint64_t lba, uint8_t *buf) {
+int nvme_read_sector(uint64_t lba, uint8_t *buf) {
     struct nvme_cmd cmd = {0};
     cmd.opcode = 0x02;
     cmd.nsid = 1;
@@ -91,9 +91,10 @@ void nvme_read_sector(uint64_t lba, uint8_t *buf) {
     nvme_submit_cmd(&cmd);
     // Wait completion
     while (!(nvme_regs[NVME_CQ0HDBL / 4] & 1));
+    return 0;
 }
 
-void nvme_write_sector(uint64_t lba, uint8_t *buf) {
+int nvme_write_sector(uint64_t lba, uint8_t *buf) {
     struct nvme_cmd cmd = {0};
     cmd.opcode = 0x01;
     cmd.nsid = 1;
@@ -103,4 +104,12 @@ void nvme_write_sector(uint64_t lba, uint8_t *buf) {
     cmd.prp1 = (uint64_t)buf;
     nvme_submit_cmd(&cmd);
     while (!(nvme_regs[NVME_CQ0HDBL / 4] & 1));
+    return 0;
 }
+
+#include "block.h"
+
+block_dev_t nvme_dev = {
+    .read = nvme_read_sector,
+    .write = nvme_write_sector
+};

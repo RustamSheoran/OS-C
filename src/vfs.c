@@ -1,5 +1,6 @@
 #include "vfs.h"
 #include "pmm.h"
+#include "block.h"
 
 #define MAX_VNODES 100
 
@@ -33,23 +34,21 @@ int ntfs_read(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
 
     // NTFS read implementation
 
-    // 1. Parse boot sector for BPB
+    // 1. Read boot sector
 
-    struct ntfs_boot *boot = (struct ntfs_boot *)vn->data;
+    uint8_t sector[512];
 
-    uint64_t mft_start = boot->hidden_sectors; // Simplified
+    if (nvme_dev.read(0, sector) != 0) return 0;
 
-    // 2. Read MFT record for file
+    struct ntfs_boot *boot = (struct ntfs_boot *)sector;
 
-    // 3. Parse attributes, find data runs
+    // 2. Validate NTFS
 
-    // 4. Read clusters from data runs
+    if (boot->oem[0] != 'N' || boot->oem[1] != 'T' || boot->oem[2] != 'F' || boot->oem[3] != 'S') return 0;
 
-    // 5. Copy to buf
+    // 3. MFT parsing stub
 
     if (offset + size > vn->size) size = vn->size - offset;
-
-    // Stub: assume data is at offset
 
     memcpy(buf, (uint8_t *)vn->data + offset, size);
 
@@ -92,6 +91,37 @@ struct vfs_ops ntfs_ops = {
 struct vfs_ops ramfs_ops = {
     .read = ramfs_read,
     .write = ramfs_write
+};
+
+struct ntfs_boot {
+    uint8_t jump[3];
+    char oem[8];
+    uint16_t bytes_per_sector;
+    uint8_t sectors_per_cluster;
+    uint16_t reserved_sectors;
+    uint8_t zero1[3];
+    uint16_t not_used;
+    uint8_t media;
+    uint16_t zero2;
+    uint16_t sectors_per_track;
+    uint16_t heads;
+    uint32_t hidden_sectors;
+    uint32_t not_used2;
+    uint32_t not_used3;
+    uint64_t total_sectors;
+    uint64_t mft_lcn;
+    uint64_t mftmirr_lcn;
+    int8_t clusters_per_mft_record;
+    uint8_t zero3[3];
+    int8_t clusters_per_index_record;
+    uint8_t zero4[3];
+    uint64_t volume_serial;
+    uint32_t checksum;
+};
+
+struct vfs_ops ntfs_ops = {
+    .read = ntfs_read,
+    .write = ntfs_write
 };
 
 void vfs_init() {
