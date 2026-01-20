@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y qemu qemu-kvm ovmf build-essential
+
+    - name: Install toolchain
+      run: |
+        wget https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-linux64.tar.xz
+        tar xf x86_64-elf-tools-linux64.tar.xz
+        export PATH=$PWD/x86_64-elf-tools/bin:$PATH
+        echo "PATH=$PWD/x86_64-elf-tools/bin:$PATH" >> $GITHUB_ENV
+
+    - name: Build kernel
+      run: make
+
+    - name: Boot test
+      run: |
+        mkdir -p esp/efi/boot
+        cp kernel.efi esp/efi/boot/bootx64.efi
+        timeout 10 qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:esp -serial stdio -nographic -m 512 -smp 1 -no-reboot < /dev/null > boot.log 2>&1 || true
+        if grep -q "Kernel loaded" boot.log; then
+          echo "Boot test: PASS"
+        else
+          echo "Boot test: FAIL"
+          cat boot.log
+          exit 1
+        fi
+
+    - name: Run tests
+      run: |
+        timeout 10 qemu-system-x86_64 -bios /usr/share/ovmf/OVMF.fd -drive format=raw,file=fat:rw:esp -serial stdio -nographic -m 512 -smp 1 -no-reboot -append "test" < /dev/null > test.log 2>&1 || true
+        if grep -q "Tests completed" test.log; then
+          echo "Test run: PASS"
+          grep "PASS" test.log | wc -l
+        else
+          echo "Test run: FAIL"
+          cat test.log
+          exit 1
+        fi
