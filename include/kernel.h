@@ -38,4 +38,21 @@ typedef struct {
 
 void kernel_main(EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN MapSize, UINTN DescriptorSize, uint64_t kernel_base);
 
+// Kernel initialization functions
+void init_gdt();
+void smp_init();
+void init_processes();
+void vfs_init();
+
+// Kernel utilities
+void panic(const char *msg);
+void *kmalloc(uint64_t size);
+void kfree(void *ptr);
+
+// Graphics
+void draw_pixel(uint32_t x, uint32_t y, uint32_t color);
+
+// Testing
+void run_tests();
+
 #endif

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "task.h"
 #include "pmm.h"
+#include "kernel.h"
 
 struct task *current_task;
 struct task *ready_queue;

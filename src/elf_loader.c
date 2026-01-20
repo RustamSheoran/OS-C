@@ -1,3 +1,4 @@
+#include <string.h>
 #include "elf.h"
 #include "pmm.h"
 #include "paging.h"

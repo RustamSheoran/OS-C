@@ -2,6 +2,7 @@
 #include "io.h"
 #include "interrupts.h"
 #include "idt.h"
+#include "task.h"
 
 void init_idt();
 void init_pic();

@@ -48,6 +48,7 @@ char serial_getc() {
     return inb(0x3F8);
 }
 
+void serial_putc(char c);
 void serial_puts(const char *s) {
     while (*s) serial_putc(*s++);
 }
