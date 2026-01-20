@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 #include "process.h"
 #include "pmm.h"
 #include "paging.h"
