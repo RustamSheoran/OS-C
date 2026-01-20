@@ -7,6 +7,8 @@ void init_idt();
 void init_pic();
 void init_pit();
 
+extern void syscall_handler();
+
 void init_syscall();
 
 void init_interrupts() {
