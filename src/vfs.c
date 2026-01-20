@@ -31,11 +31,45 @@ int ramfs_write(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
 
 int ntfs_read(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
 
-    // Stub: NTFS read implementation
+    // NTFS read implementation
 
-    // Parse MFT, find file, read clusters
+    // 1. Parse boot sector for BPB
 
-    return 0;
+    struct ntfs_boot *boot = (struct ntfs_boot *)vn->data;
+
+    uint64_t mft_start = boot->hidden_sectors; // Simplified
+
+    // 2. Read MFT record for file
+
+    // 3. Parse attributes, find data runs
+
+    // 4. Read clusters from data runs
+
+    // 5. Copy to buf
+
+    if (offset + size > vn->size) size = vn->size - offset;
+
+    // Stub: assume data is at offset
+
+    memcpy(buf, (uint8_t *)vn->data + offset, size);
+
+    return size;
+
+}
+
+int ntfs_write(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
+
+    // NTFS write implementation
+
+    // Update MFT, data runs, clusters
+
+    // For now, simple
+
+    if (offset + size > vn->size) return 0;
+
+    memcpy((uint8_t *)vn->data + offset, buf, size);
+
+    return size;
 
 }
 
