@@ -44,6 +44,11 @@ typedef enum {
     EfiMaxMemoryType
 } EFI_MEMORY_TYPE;
 
+#define EFI_ALLOCATE_ANY_PAGES 0
+#define EFI_ALLOCATE_MAX_ADDRESS 1
+#define EFI_ALLOCATE_ADDRESS 2
+#define EFI_MAX_ALLOCATE_TYPE 3
+
 typedef struct {
     UINT32 Type;
     UINT32 Pad;
@@ -65,6 +70,12 @@ typedef struct EFI_BOOT_SERVICES {
     // Add more as needed
 } EFI_BOOT_SERVICES;
 
+typedef struct EFI_SYSTEM_TABLE {
+    char _pad1[60];
+    EFI_BOOT_SERVICES *BootServices;
+    // Simplified
+} EFI_SYSTEM_TABLE;
+
 typedef struct EFI_LOADED_IMAGE_PROTOCOL {
     UINT32 Revision;
     EFI_HANDLE ParentHandle;
@@ -81,12 +92,6 @@ typedef struct EFI_LOADED_IMAGE_PROTOCOL {
 } EFI_LOADED_IMAGE_PROTOCOL;
 
 #define EFI_LOADED_IMAGE_PROTOCOL_GUID {0x5B1B31A1,0x9562,0x11d2,{0x8E,0x3F,0x00,0xA0,0xC9,0x69,0x72,0x3B}}
-
-typedef struct EFI_SYSTEM_TABLE {
-    char _pad1[60];
-    EFI_BOOT_SERVICES *BootServices;
-    // Simplified
-} EFI_SYSTEM_TABLE;
 
 EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable);
 
