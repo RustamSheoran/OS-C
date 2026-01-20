@@ -257,15 +257,15 @@ This document details the 15-phase development of the OS-C x86_64 kernel, includ
 - ELF loader: Complete with segment mapping
 - GDT: Complete with user segments
 - User mode: Started, need entry code
-- Process model: Next, fork/exec stubs
-- COW memory: Planned, need page faults
-- VFS: Stub, need EXT2
-- Scheduler: Upgrade to per-CPU queues
+- Process model: Basic, need fork/exec
+- COW memory: Planned, page fault handler added
+- VFS: Basic interface, ramfs implemented
+- Scheduler: Upgrade to per-CPU queues (stub)
 - TCP/IP: Stub, need full stack
 - Security: ASLR, NX, stack canaries added
 - Debugging: Stack traces, crash dumps
 
-**Key Code**: elf_loader.c, gdt.c, process.c (upcoming), vfs.c, ext2.c, scheduler.c, tcpip.c, security.c, debug.c.
+**Key Code**: elf_loader.c, gdt.c, process.c, vfs.c, ext2.c, scheduler.c, tcpip.c, security.c, debug.c.
 **Goal**: Complete and document the project.
 
 **Implementation**:
