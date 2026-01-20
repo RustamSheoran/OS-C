@@ -259,7 +259,7 @@ This document details the 15-phase development of the OS-C x86_64 kernel, includ
 - User mode: Started, need entry code
 - Process model: Basic, need fork/exec
 - COW memory: Planned, page fault handler added
-- VFS: Basic interface, ramfs implemented
+- VFS: Basic interface, ramfs, NTFS, NVMe implemented
 - Scheduler: Upgrade to per-CPU queues (stub)
 - TCP/IP: Stub, need full stack
 - Security: ASLR, NX, stack canaries added

@@ -14,10 +14,46 @@ int ramfs_read(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
 }
 
 int ramfs_write(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
-    if (offset + size > vn->size) return 0; // Stub
+
+    if (offset + size > vn->size) {
+
+        // Extend, stub
+
+        return 0;
+
+    }
+
     memcpy((uint8_t *)vn->data + offset, buf, size);
+
     return size;
+
 }
+
+int ntfs_read(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
+
+    // Stub: NTFS read implementation
+
+    // Parse MFT, find file, read clusters
+
+    return 0;
+
+}
+
+int ntfs_write(struct vnode *vn, uint64_t offset, void *buf, size_t size) {
+
+    // Stub: NTFS write
+
+    return 0;
+
+}
+
+struct vfs_ops ntfs_ops = {
+
+    .read = ntfs_read,
+
+    .write = ntfs_write
+
+};
 
 struct vfs_ops ramfs_ops = {
     .read = ramfs_read,
