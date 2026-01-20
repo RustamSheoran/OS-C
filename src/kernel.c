@@ -99,6 +99,7 @@ void kernel_main(EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN MapSize, UINTN Descript
     init_interrupts();
     smp_init();
     init_scheduler();
+    init_processes();
     create_task(task_func);
     fs_init();
     fs_create_file("test.txt", 10);
