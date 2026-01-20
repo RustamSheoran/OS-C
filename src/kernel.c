@@ -138,6 +138,8 @@ void kernel_main(EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN MapSize, UINTN Descript
         } else if (strcmp(cmd, "draw") == 0) {
             draw_pixel(100, 100, 0xFF0000);
             serial_puts("Pixel drawn\n");
+        } else if (strcmp(cmd, "test") == 0) {
+            run_tests();
         } else if (strcmp(cmd, "") == 0) {
             // do nothing
         } else {
