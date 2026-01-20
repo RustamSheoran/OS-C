@@ -20,7 +20,7 @@ jobs:
 
     - name: Install toolchain
       run: |
-        wget https://github.com/lordmilko/i686-elf-tools/releases/download/13.2.0/x86_64-elf-tools-linux64.tar.xz
+        wget https://github.com/lordmilko/i686-elf-tools/releases/download/13.1.0/x86_64-elf-tools-linux64.tar.xz
         tar xf x86_64-elf-tools-linux64.tar.xz
         export PATH=$PWD/x86_64-elf-tools/bin:$PATH
         echo "PATH=$PWD/x86_64-elf-tools/bin:$PATH" >> $GITHUB_ENV
