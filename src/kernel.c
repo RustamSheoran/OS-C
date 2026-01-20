@@ -42,6 +42,19 @@ int strcmp(const char *a, const char *b) {
 
 uint64_t ticks = 0;
 
+void *memcpy(void *dest, const void *src, size_t n) {
+    uint8_t *d = dest;
+    const uint8_t *s = src;
+    for (size_t i = 0; i < n; i++) *d++ = *s++;
+    return dest;
+}
+
+void *memset(void *s, int c, size_t n) {
+    uint8_t *p = s;
+    for (size_t i = 0; i < n; i++) *p++ = c;
+    return s;
+}
+
 void panic(const char *msg) {
     serial_puts("PANIC: ");
     serial_puts(msg);
@@ -82,6 +95,7 @@ void kernel_main(EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN MapSize, UINTN Descript
     }
     pmm_init(MemoryMap, MapSize, DescriptorSize);
     paging_init(kernel_base);
+    init_gdt();
     init_interrupts();
     smp_init();
     init_scheduler();
