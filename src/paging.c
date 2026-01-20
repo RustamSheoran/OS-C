@@ -10,7 +10,7 @@
 
 static uint64_t *pml4;
 
-static void map_page(uint64_t virt, uint64_t phys, uint64_t flags);
+void map_page(uint64_t virt, uint64_t phys, uint64_t flags);
 
 void paging_init(uint64_t kernel_base) {
     pml4 = (uint64_t *)pmm_alloc_page();
