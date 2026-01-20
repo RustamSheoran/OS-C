@@ -19,7 +19,7 @@ uint64_t load_elf(void *elf_data, uint64_t *entry) {
             if (phdr[i].p_flags & PF_R) flags |= 1;
             if (phdr[i].p_flags & PF_W) flags |= 2;
             // Allocate pages
-            for (uint64_t addr = vaddr & ~0xFFF; addr < (vaddr + memsz + 0xFFF) & ~0xFFF; addr += 0x1000) {
+            for (uint64_t addr = vaddr & ~0xFFF; addr < ((vaddr + memsz + 0xFFF) & ~0xFFF); addr += 0x1000) {
                 uint64_t phys = pmm_alloc_page();
                 map_page(addr, phys, flags);
             }
