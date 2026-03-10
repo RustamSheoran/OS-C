@@ -43,17 +43,17 @@ static inline void outl(uint16_t port, uint32_t val) {
     __asm__ volatile ("outl %0, %1" : : "a"(val), "Nd"(port));
 }
 
-char serial_getc() {
+static inline char serial_getc(void) {
     while ((inb(0x3F8 + 5) & 1) == 0);
     return inb(0x3F8);
 }
 
 void serial_putc(char c);
-void serial_puts(const char *s) {
+static inline void serial_puts(const char *s) {
     while (*s) serial_putc(*s++);
 }
 
-char keyboard_getc() {
+static inline char keyboard_getc(void) {
     while ((inb(0x64) & 1) == 0);
     return inb(0x60);
 }

@@ -75,7 +75,7 @@ void nvme_init() {
 
 void nvme_submit_cmd(struct nvme_cmd *cmd) {
     // Copy to SQ
-    memcpy(admin_sq, cmd, sizeof(struct nvme_cmd));
+    __builtin_memcpy(admin_sq, cmd, sizeof(struct nvme_cmd));
     // Ring doorbell
     nvme_regs[NVME_SQ0TDBL / 4] = 1;
 }

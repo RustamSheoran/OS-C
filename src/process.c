@@ -29,7 +29,7 @@ struct process *create_process(void *elf_data) {
     proc->rip = entry;
     proc->stack_top = 0x7FFFFFFFF000;
     // Alloc user stack
-    for (uint64_t addr = 0x7FFFFFFFF000 - 0x1000; addr >= 0x7FFFFFFFE000; addr -= 0x1000) {
+    for (uint64_t addr = 0x7FFFFFFFE000; addr < 0x7FFFFFFFF000; addr += 0x1000) {
         uint64_t phys = pmm_alloc_page();
         map_page(addr, phys, 7); // User RW
     }

@@ -1,5 +1,6 @@
 #include "pmm.h"
 #include "paging.h"
+#include <stddef.h>
 
 extern void *kmalloc(size_t size);
 

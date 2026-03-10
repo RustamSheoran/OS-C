@@ -1,8 +1,7 @@
 #include <stdint.h>
-#include "io.h"
-#include "interrupts.h"
 #include "idt.h"
-#include "task.h"
+#include "interrupts.h"
+#include "io.h"
 
 void init_idt();
 void init_pic();
@@ -24,13 +23,12 @@ extern uint64_t ticks;
 
 void timer_tick() {
     ticks++;
-    schedule();
 }
 
 void init_syscall() {
-    wrmsr(0xC0000081, (0x08ULL << 32) | (0x18ULL << 48));
+    wrmsr(0xC0000081, (0x1BULL << 48) | (0x08ULL << 32));
     wrmsr(0xC0000082, (uint64_t)syscall_handler);
-    wrmsr(0xC0000084, 0);
+    wrmsr(0xC0000084, (1ULL << 9));
     uint64_t efer = rdmsr(0xC0000080);
     efer |= (1ULL << 0);
     wrmsr(0xC0000080, efer);

@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 typedef uint64_t UINTN;
+typedef uint64_t UINT64;
 typedef uint32_t UINT32;
 typedef uint16_t UINT16;
 typedef uint8_t UINT8;
@@ -17,6 +18,14 @@ typedef uint64_t EFI_VIRTUAL_ADDRESS;
 #define EFI_SUCCESS 0ULL
 #define EFI_INVALID_PARAMETER 2ULL
 #define EFI_BUFFER_TOO_SMALL 5ULL
+
+typedef struct {
+    UINT64 Signature;
+    UINT32 Revision;
+    UINT32 HeaderSize;
+    UINT32 CRC32;
+    UINT32 Reserved;
+} EFI_TABLE_HEADER;
 
 typedef struct {
     UINT32 Data1;
@@ -58,22 +67,98 @@ typedef struct {
     UINTN Attribute;
 } EFI_MEMORY_DESCRIPTOR;
 
+typedef EFI_STATUS (EFIAPI *EFI_ALLOCATE_PAGES)(
+    UINTN Type,
+    EFI_MEMORY_TYPE MemoryType,
+    UINTN Pages,
+    EFI_PHYSICAL_ADDRESS *Memory
+);
+
+typedef EFI_STATUS (EFIAPI *EFI_FREE_PAGES)(
+    EFI_PHYSICAL_ADDRESS Memory,
+    UINTN Pages
+);
+
+typedef EFI_STATUS (EFIAPI *EFI_GET_MEMORY_MAP)(
+    UINTN *MemoryMapSize,
+    EFI_MEMORY_DESCRIPTOR *MemoryMap,
+    UINTN *MapKey,
+    UINTN *DescriptorSize,
+    UINT32 *DescriptorVersion
+);
+
+typedef EFI_STATUS (EFIAPI *EFI_HANDLE_PROTOCOL)(
+    EFI_HANDLE Handle,
+    EFI_GUID *Protocol,
+    void **Interface
+);
+
+typedef EFI_STATUS (EFIAPI *EFI_EXIT_BOOT_SERVICES)(
+    EFI_HANDLE ImageHandle,
+    UINTN MapKey
+);
+
 typedef struct EFI_BOOT_SERVICES {
-    char _pad1[24];
-    EFI_STATUS (EFIAPI *AllocatePages)(UINTN Type, EFI_MEMORY_TYPE MemoryType, UINTN Pages, EFI_PHYSICAL_ADDRESS *Memory);
-    EFI_STATUS (EFIAPI *FreePages)(EFI_PHYSICAL_ADDRESS Memory, UINTN Pages);
-    char _pad2[16];
-    EFI_STATUS (EFIAPI *GetMemoryMap)(UINTN *MemoryMapSize, EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN *MapKey, UINTN *DescriptorSize, UINT32 *DescriptorVersion);
-    char _pad3[12];
-    EFI_STATUS (EFIAPI *ExitBootServices)(EFI_HANDLE ImageHandle, UINTN MapKey);
-    EFI_STATUS (EFIAPI *HandleProtocol)(EFI_HANDLE Handle, EFI_GUID *Protocol, void **Interface);
-    // Add more as needed
+    EFI_TABLE_HEADER Hdr;
+    void *RaiseTPL;
+    void *RestoreTPL;
+    EFI_ALLOCATE_PAGES AllocatePages;
+    EFI_FREE_PAGES FreePages;
+    EFI_GET_MEMORY_MAP GetMemoryMap;
+    void *AllocatePool;
+    void *FreePool;
+    void *CreateEvent;
+    void *SetTimer;
+    void *WaitForEvent;
+    void *SignalEvent;
+    void *CloseEvent;
+    void *CheckEvent;
+    void *InstallProtocolInterface;
+    void *ReinstallProtocolInterface;
+    void *UninstallProtocolInterface;
+    EFI_HANDLE_PROTOCOL HandleProtocol;
+    void *Reserved;
+    void *RegisterProtocolNotify;
+    void *LocateHandle;
+    void *LocateDevicePath;
+    void *InstallConfigurationTable;
+    void *LoadImage;
+    void *StartImage;
+    void *Exit;
+    void *UnloadImage;
+    EFI_EXIT_BOOT_SERVICES ExitBootServices;
+    void *GetNextMonotonicCount;
+    void *Stall;
+    void *SetWatchdogTimer;
+    void *ConnectController;
+    void *DisconnectController;
+    void *OpenProtocol;
+    void *CloseProtocol;
+    void *OpenProtocolInformation;
+    void *ProtocolsPerHandle;
+    void *LocateHandleBuffer;
+    void *LocateProtocol;
+    void *InstallMultipleProtocolInterfaces;
+    void *UninstallMultipleProtocolInterfaces;
+    void *CalculateCrc32;
+    void *CopyMem;
+    void *SetMem;
+    void *CreateEventEx;
 } EFI_BOOT_SERVICES;
 
 typedef struct EFI_SYSTEM_TABLE {
-    char _pad1[60];
+    EFI_TABLE_HEADER Hdr;
+    UINT16 *FirmwareVendor;
+    UINT32 FirmwareRevision;
+    UINT32 _pad0;
+    EFI_HANDLE ConsoleInHandle;
+    void *ConIn;
+    EFI_HANDLE ConsoleOutHandle;
+    void *ConOut;
+    EFI_HANDLE StandardErrorHandle;
+    void *StdErr;
+    void *RuntimeServices;
     EFI_BOOT_SERVICES *BootServices;
-    // Simplified
 } EFI_SYSTEM_TABLE;
 
 typedef struct EFI_LOADED_IMAGE_PROTOCOL {

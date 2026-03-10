@@ -53,6 +53,6 @@ void kfree(void *ptr);
 void draw_pixel(uint32_t x, uint32_t y, uint32_t color);
 
 // Testing
-void run_tests();
+int run_tests(void);
 
 #endif

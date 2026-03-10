@@ -13,6 +13,9 @@ struct task {
     char stack[4096];
 };
 
+extern struct task *current_task;
+extern struct task *ready_queue;
+
 void init_scheduler();
 void schedule();
 void create_task(void (*func)());

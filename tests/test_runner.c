@@ -1,4 +1,5 @@
 #include "tests.h"
+#include <stddef.h>
 #include "io.h"
 #include "pmm.h"
 #include "task.h"
@@ -13,8 +14,6 @@ extern int test_paging_stress();
 extern int test_task_creation();
 extern int test_preemption();
 extern int test_fairness();
-#include <stdint.h>
-
 extern void *kmalloc(size_t size);
 extern void schedule();
 extern int strcmp(const char *a, const char *b);
@@ -178,5 +177,6 @@ int test_filesystem() {
     fs_write_file("testfile", "data", 4);
     char buf[10];
     fs_read_file("testfile", buf, 4);
+    buf[4] = '\0';
     return strcmp(buf, "data") == 0;
 }

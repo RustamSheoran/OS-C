@@ -1,173 +1,293 @@
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+#include "fs.h"
+#include "graphics.h"
+#include "interrupts.h"
 #include "io.h"
 #include "kernel.h"
-#include "pmm.h"
 #include "paging.h"
-#include "interrupts.h"
+#include "pmm.h"
 #include "task.h"
-#include "fs.h"
 
-void init_serial() {
-    outb(0x3F8 + 1, 0x00); // Disable interrupts
-    outb(0x3F8 + 3, 0x80); // Enable DLAB
-    outb(0x3F8 + 0, 0x03); // Set divisor to 3 (lo byte) 38400 baud
-    outb(0x3F8 + 1, 0x00); // (hi byte)
-    outb(0x3F8 + 3, 0x03); // 8 bits, no parity, one stop bit
-    outb(0x3F8 + 2, 0xC7); // Enable FIFO, clear them, with 14-byte threshold
-    outb(0x3F8 + 4, 0x0B); // RTS/DSR set
+#define HEAP_BASE 0x02000000ULL
+#define HEAP_SIZE 0x00800000ULL
+
+uint64_t ticks = 0;
+
+static uint64_t heap_ptr = HEAP_BASE;
+static uint64_t heap_end = HEAP_BASE + HEAP_SIZE;
+
+void init_serial(void) {
+    outb(0x3F8 + 1, 0x00);
+    outb(0x3F8 + 3, 0x80);
+    outb(0x3F8 + 0, 0x03);
+    outb(0x3F8 + 1, 0x00);
+    outb(0x3F8 + 3, 0x03);
+    outb(0x3F8 + 2, 0xC7);
+    outb(0x3F8 + 4, 0x0B);
 }
 
 void serial_putc(char c) {
-    while ((inb(0x3F8 + 5) & 0x20) == 0);
-    outb(0x3F8, c);
+    while ((inb(0x3F8 + 5) & 0x20) == 0) { }
+    outb(0x3F8, (uint8_t)c);
 }
 
-static uint64_t heap_ptr = 0xFFFFFFFF80100000;
+void *memset(void *dst, int c, size_t n) {
+    uint8_t *p = (uint8_t *)dst;
+    for (size_t i = 0; i < n; i++) {
+        p[i] = (uint8_t)c;
+    }
+    return dst;
+}
 
-void *kmalloc(size_t size) {
-    void *ptr = (void *)heap_ptr;
+void *memcpy(void *dst, const void *src, size_t n) {
+    uint8_t *d = (uint8_t *)dst;
+    const uint8_t *s = (const uint8_t *)src;
+    for (size_t i = 0; i < n; i++) {
+        d[i] = s[i];
+    }
+    return dst;
+}
+
+size_t strlen(const char *s) {
+    size_t n = 0;
+    while (s[n]) {
+        n++;
+    }
+    return n;
+}
+
+int strcmp(const char *a, const char *b) {
+    while (*a && *b && *a == *b) {
+        a++;
+        b++;
+    }
+    return (int)((unsigned char)*a - (unsigned char)*b);
+}
+
+int strncmp(const char *a, const char *b, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+        if (a[i] != b[i]) {
+            return (int)((unsigned char)a[i] - (unsigned char)b[i]);
+        }
+        if (a[i] == '\0') {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+void *kmalloc(uint64_t size) {
+    if (size == 0) {
+        return NULL;
+    }
+
+    size = (size + 15ULL) & ~15ULL;
+    if (heap_ptr + size > heap_end) {
+        return NULL;
+    }
+
+    void *ptr = (void *)(uintptr_t)heap_ptr;
     heap_ptr += size;
     return ptr;
 }
 
 void kfree(void *ptr) {
-    (void)ptr; // Suppress unused parameter warning
-    // TODO: Implement free
-}
-
-int strcmp(const char *a, const char *b) {
-    while (*a && *b && *a == *b) { a++; b++; }
-    return *a - *b;
-}
-
-uint64_t ticks = 0;
-
-void *memcpy(void *dest, const void *src, size_t n) {
-    uint8_t *d = dest;
-    const uint8_t *s = src;
-    for (size_t i = 0; i < n; i++) *d++ = *s++;
-    return dest;
-}
-
-void *memset(void *s, int c, size_t n) {
-    uint8_t *p = s;
-    for (size_t i = 0; i < n; i++) *p++ = c;
-    return s;
+    (void)ptr;
 }
 
 void panic(const char *msg) {
     serial_puts("PANIC: ");
     serial_puts(msg);
     serial_putc('\n');
-    while (1);
+    __asm__ volatile ("cli");
+    while (1) {
+        __asm__ volatile ("hlt");
+    }
 }
 
 void print_num(uint64_t n) {
+    char buf[32];
+    int i = 0;
+
     if (n == 0) {
         serial_putc('0');
         return;
     }
-    char buf[20];
-    int i = 0;
-    while (n) {
-        buf[i++] = '0' + (n % 10);
-        n /= 10;
+
+    while (n != 0) {
+        buf[i++] = (char)('0' + (n % 10ULL));
+        n /= 10ULL;
     }
-    while (i--) serial_putc(buf[i]);
+    while (i > 0) {
+        serial_putc(buf[--i]);
+    }
 }
 
-void ap_entry() {
-    serial_puts("AP online\n");
-    while (1);
-}
-
-void task_func() {
+void ap_entry(void) {
     while (1) {
-        serial_putc('T');
+        __asm__ volatile ("hlt");
     }
 }
 
-void kernel_main(EFI_MEMORY_DESCRIPTOR *MemoryMap, UINTN MapSize, UINTN DescriptorSize, uint64_t kernel_base) {
-    init_serial();
-    const char *msg = "Kernel loaded\n";
-    for (const char *p = msg; *p; p++) {
-        serial_putc(*p);
+static struct inode *find_inode(const char *name) {
+    for (int i = 0; i < root_fs.num_inodes; i++) {
+        if (strcmp(root_fs.inodes[i].name, name) == 0) {
+            return &root_fs.inodes[i];
+        }
     }
+    return NULL;
+}
+
+static void shell_help(void) {
+    serial_puts("Commands: ls, echo, cat, uptime, meminfo, draw, help\n");
+}
+
+static void shell_run(const char *cmd) {
+    if (strcmp(cmd, "") == 0) {
+        return;
+    }
+
+    if (strcmp(cmd, "ls") == 0) {
+        for (int i = 0; i < root_fs.num_inodes; i++) {
+            serial_puts(root_fs.inodes[i].name);
+            serial_putc('\n');
+        }
+        return;
+    }
+
+    if (strncmp(cmd, "echo", 4) == 0) {
+        const char *msg = cmd + 4;
+        if (*msg == ' ') {
+            msg++;
+        }
+        serial_puts(msg);
+        serial_putc('\n');
+        return;
+    }
+
+    if (strncmp(cmd, "cat", 3) == 0) {
+        const char *name = cmd + 3;
+        while (*name == ' ') {
+            name++;
+        }
+        if (*name == '\0') {
+            serial_puts("usage: cat <file>\n");
+            return;
+        }
+
+        struct inode *inode = find_inode(name);
+        if (inode == NULL) {
+            serial_puts("file not found\n");
+            return;
+        }
+
+        if (inode->size > 0) {
+            char *tmp = (char *)kmalloc(inode->size + 1);
+            if (tmp == NULL) {
+                serial_puts("out of memory\n");
+                return;
+            }
+            if (fs_read_file(name, tmp, inode->size) == 0) {
+                tmp[inode->size] = '\0';
+                serial_puts(tmp);
+                serial_putc('\n');
+            } else {
+                serial_puts("read failed\n");
+            }
+        }
+        return;
+    }
+
+    if (strcmp(cmd, "uptime") == 0) {
+        serial_puts("Uptime: ");
+        print_num(ticks / 1000ULL);
+        serial_puts(" seconds\n");
+        return;
+    }
+
+    if (strcmp(cmd, "meminfo") == 0) {
+        uint64_t free_pages = pmm_get_free_pages();
+        serial_puts("Free pages: ");
+        print_num(free_pages);
+        serial_puts(" (");
+        print_num((free_pages * 4096ULL) / 1024ULL);
+        serial_puts(" KiB)\n");
+        return;
+    }
+
+    if (strcmp(cmd, "draw") == 0) {
+        draw_pixel(10, 10, 0x00FF0000U);
+        serial_puts("draw ok\n");
+        return;
+    }
+
+    if (strcmp(cmd, "help") == 0) {
+        shell_help();
+        return;
+    }
+
+    if (strcmp(cmd, "test") == 0) {
+        if (run_tests() == 0) {
+            serial_puts("tests: PASS\n");
+        } else {
+            serial_puts("tests: FAIL\n");
+        }
+        return;
+    }
+
+    serial_puts("Unknown command\n");
+}
+
+void kernel_main(
+    EFI_MEMORY_DESCRIPTOR *MemoryMap,
+    UINTN MapSize,
+    UINTN DescriptorSize,
+    uint64_t kernel_base
+) {
+    init_serial();
+    serial_puts("Kernel loaded\n");
+
     pmm_init(MemoryMap, MapSize, DescriptorSize);
     paging_init(kernel_base);
     init_gdt();
-    init_interrupts();
-    smp_init();
     init_scheduler();
     init_processes();
-    create_task(task_func);
     fs_init();
     vfs_init();
-    fs_create_file("test.txt", 10);
-    fs_write_file("test.txt", "hello", 5);
-    // Test alloc/free
-    uint64_t page = pmm_alloc_page();
-    if (page) {
-        serial_putc('A');
-        pmm_free_page(page);
-        serial_putc('F');
-    }
-    // Test kmalloc
-    void *ptr = kmalloc(100);
-    if (ptr) serial_putc('K');
-    // Test schedule
-    schedule();
-    // Test syscall
-    __asm__ volatile ("mov $1, %%rax; mov $72, %%rdi; syscall" : : : "rax", "rdi");
+    graphics_init();
+    init_interrupts();
 
-    // Shell
+    fs_create_file("test.txt", 6);
+    fs_write_file("test.txt", "hello\n", 6);
+
+    shell_help();
     serial_puts("> ");
-    char cmd[100];
-    int idx = 0;
+
+    char cmd[128];
+    size_t idx = 0;
+
     while (1) {
         char c = serial_getc();
+
         if (c == '\r' || c == '\n') {
-            cmd[idx] = 0;
-        if (strcmp(cmd, "ls") == 0) {
-            for (int i = 0; i < root_fs.num_inodes; i++) {
-                serial_puts(root_fs.inodes[i].name);
-                serial_putc('\n');
-            }
-        } else if (strcmp(cmd, "echo hello") == 0) {
-            serial_puts("hello\n");
-        } else if (strcmp(cmd, "cat test.txt") == 0) {
-            char buf[10];
-            fs_read_file("test.txt", buf, 5);
-            buf[5] = 0;
-            serial_puts(buf);
             serial_putc('\n');
-        } else if (strcmp(cmd, "help") == 0) {
-            serial_puts("Commands: ls, echo hello, cat test.txt, uptime, meminfo, help\n");
-        } else if (strcmp(cmd, "uptime") == 0) {
-            serial_puts("Uptime: ");
-            print_num(ticks / 1000);
-            serial_puts(" seconds\n");
-        } else if (strcmp(cmd, "meminfo") == 0) {
-            serial_puts("Free pages: ");
-            print_num(pmm_get_free_pages());
-            serial_putc('\n');
-        } else if (strcmp(cmd, "draw") == 0) {
-            draw_pixel(100, 100, 0xFF0000);
-            serial_puts("Pixel drawn\n");
-        } else if (strcmp(cmd, "test") == 0) {
-            run_tests();
-        } else if (strcmp(cmd, "") == 0) {
-            // do nothing
-        } else {
-            serial_puts("Unknown command\n");
-        }
-            serial_puts("> ");
+            cmd[idx] = '\0';
+            shell_run(cmd);
             idx = 0;
-        } else {
+            serial_puts("> ");
+            continue;
+        }
+
+        if ((c == '\b' || c == 127) && idx > 0) {
+            idx--;
+            serial_puts("\b \b");
+            continue;
+        }
+
+        if (idx + 1 < sizeof(cmd)) {
             cmd[idx++] = c;
-            if (idx >= 99) idx = 99;
+            serial_putc(c);
         }
     }
 }
-
