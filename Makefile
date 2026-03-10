@@ -56,7 +56,11 @@ kernel.elf: $(OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 kernel.efi: kernel.elf
-	$(OBJCOPY) $(EFI_LDFLAGS) $< $@ || $(OBJCOPY) --output-target=pei-x86-64 $< $@
+	@if $(OBJCOPY) --info 2>/dev/null | grep -q "efi-app-x86_64"; then \
+		$(OBJCOPY) $(EFI_LDFLAGS) $< $@; \
+	else \
+		$(OBJCOPY) --output-target=pei-x86-64 $< $@; \
+	fi
 
 clean:
 	rm -rf $(OBJ_DIR) kernel.elf kernel.efi esp boot.log
