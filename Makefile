@@ -81,7 +81,7 @@ kernel.elf: $(OBJS)
 	$(LD) $(LDFLAGS) $^ -o $@
 
 kernel.efi: kernel.elf
-	$(OBJCOPY) --output-target=pei-x86-64 $< $@
+	$(OBJCOPY) --output-target=pei-x86-64 --subsystem=10 $< $@
 
 clean:
 	rm -rf $(OBJ_DIR) kernel.elf kernel.efi esp boot.log
