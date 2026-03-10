@@ -40,6 +40,9 @@ struct process *create_process(void *elf_data) {
 }
 
 void switch_to_process(struct process *proc) {
+    if (!proc) {
+        return;
+    }
+    current_process = proc;
     __asm__ volatile ("mov %0, %%cr3" : : "r"(proc->cr3));
-    // TODO: Enter user mode with iretq
 }
