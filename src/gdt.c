@@ -64,7 +64,7 @@ void init_gdt() {
     gdt[4].base_high = 0;
     gdt[4].reserved = 0;
 
-    // TSS stub
+    // Reserved TSS descriptor slot.
     gdt[5] = (struct gdt_entry){0};
     gdt[5].access = 0x89;
 
