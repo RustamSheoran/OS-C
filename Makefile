@@ -1,7 +1,32 @@
-CC ?= x86_64-elf-gcc
-AS ?= x86_64-elf-as
-LD ?= x86_64-elf-ld
-OBJCOPY ?= x86_64-elf-objcopy
+CROSS_PREFIX := $(shell if command -v x86_64-elf-gcc >/dev/null 2>&1; then printf '%s' x86_64-elf-; fi)
+
+ifeq ($(origin CC), default)
+CC := $(if $(CROSS_PREFIX),$(CROSS_PREFIX)gcc,gcc)
+endif
+ifeq ($(origin CC), undefined)
+CC := $(if $(CROSS_PREFIX),$(CROSS_PREFIX)gcc,gcc)
+endif
+
+ifeq ($(origin AS), default)
+AS := $(if $(CROSS_PREFIX),$(CROSS_PREFIX)as,as)
+endif
+ifeq ($(origin AS), undefined)
+AS := $(if $(CROSS_PREFIX),$(CROSS_PREFIX)as,as)
+endif
+
+ifeq ($(origin LD), default)
+LD := $(if $(CROSS_PREFIX),$(CROSS_PREFIX)ld,ld)
+endif
+ifeq ($(origin LD), undefined)
+LD := $(if $(CROSS_PREFIX),$(CROSS_PREFIX)ld,ld)
+endif
+
+ifeq ($(origin OBJCOPY), default)
+OBJCOPY := $(if $(CROSS_PREFIX),$(CROSS_PREFIX)objcopy,objcopy)
+endif
+ifeq ($(origin OBJCOPY), undefined)
+OBJCOPY := $(if $(CROSS_PREFIX),$(CROSS_PREFIX)objcopy,objcopy)
+endif
 
 CFLAGS = -ffreestanding -fno-stack-protector -fno-pie -mcmodel=kernel -mno-red-zone -mgeneral-regs-only -std=c11 -Wall -Wextra -Iinclude
 LDFLAGS = -T scripts/linker.ld -nostdlib
