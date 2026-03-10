@@ -14,8 +14,13 @@
 
 uint64_t ticks = 0;
 
-static uint64_t heap_ptr = HEAP_BASE;
-static uint64_t heap_end = HEAP_BASE + HEAP_SIZE;
+struct heap_block {
+    uint64_t size;
+    uint64_t used;
+    struct heap_block *next;
+};
+
+static struct heap_block *heap_head = NULL;
 
 void init_serial(void) {
     outb(0x3F8 + 1, 0x00);
@@ -78,22 +83,62 @@ int strncmp(const char *a, const char *b, size_t n) {
 }
 
 void *kmalloc(uint64_t size) {
+    if (heap_head == NULL) {
+        heap_head = (struct heap_block *)(uintptr_t)HEAP_BASE;
+        heap_head->size = HEAP_SIZE - sizeof(struct heap_block);
+        heap_head->used = 0;
+        heap_head->next = NULL;
+    }
+
     if (size == 0) {
         return NULL;
     }
 
     size = (size + 15ULL) & ~15ULL;
-    if (heap_ptr + size > heap_end) {
-        return NULL;
+
+    struct heap_block *block = heap_head;
+    while (block != NULL) {
+        if (!block->used && block->size >= size) {
+            uint64_t remaining = block->size - size;
+            if (remaining > sizeof(struct heap_block) + 16ULL) {
+                struct heap_block *next =
+                    (struct heap_block *)((uint8_t *)(block + 1) + size);
+                next->size = remaining - sizeof(struct heap_block);
+                next->used = 0;
+                next->next = block->next;
+                block->next = next;
+                block->size = size;
+            }
+
+            block->used = 1;
+            return (void *)(block + 1);
+        }
+        block = block->next;
     }
 
-    void *ptr = (void *)(uintptr_t)heap_ptr;
-    heap_ptr += size;
-    return ptr;
+    return NULL;
 }
 
 void kfree(void *ptr) {
-    (void)ptr;
+    if (ptr == NULL) {
+        return;
+    }
+
+    struct heap_block *block = ((struct heap_block *)ptr) - 1;
+    block->used = 0;
+
+    struct heap_block *cur = heap_head;
+    while (cur != NULL && cur->next != NULL) {
+        if (!cur->used && !cur->next->used) {
+            uint8_t *cur_end = (uint8_t *)(cur + 1) + cur->size;
+            if (cur_end == (uint8_t *)cur->next) {
+                cur->size += sizeof(struct heap_block) + cur->next->size;
+                cur->next = cur->next->next;
+                continue;
+            }
+        }
+        cur = cur->next;
+    }
 }
 
 void panic(const char *msg) {
@@ -195,6 +240,7 @@ static void shell_run(const char *cmd) {
             } else {
                 serial_puts("read failed\n");
             }
+            kfree(tmp);
         }
         return;
     }
