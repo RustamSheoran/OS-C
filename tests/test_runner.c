@@ -26,6 +26,9 @@ int test_scheduler();
 int test_syscalls();
 int test_filesystem();
 
+static void test_task_entry(void) {
+}
+
 int run_tests() {
     serial_puts("Running kernel tests...\n");
     int passed = 0;
@@ -53,7 +56,7 @@ int run_tests() {
     }
 
     // Memory tests
-    total += 5;
+    total += 6;
     if (test_pfa_alloc_free()) {
         serial_puts("PFA alloc/free: PASS\n");
         passed++;
@@ -87,6 +90,13 @@ int run_tests() {
         passed++;
     } else {
         serial_puts("Heap stress: FAIL\n");
+    }
+
+    if (test_paging_stress()) {
+        serial_puts("Paging stress: PASS\n");
+        passed++;
+    } else {
+        serial_puts("Paging stress: FAIL\n");
     }
 
     // Scheduler tests
@@ -161,15 +171,22 @@ int test_heap_alloc() {
 }
 
 int test_scheduler() {
-    // Create a task and check
-    create_task((void *)serial_puts);
+    create_task(test_task_entry);
     return ready_queue != NULL;
 }
 
 int test_syscalls() {
-    // Test write syscall
-    __asm__ volatile ("mov $1, %%rax; mov $84, %%rdi; syscall" : : : "rax", "rdi"); // 'T'
-    return 1; // Assume success
+    uint64_t ret;
+    __asm__ volatile (
+        "mov $1, %%rax\n\t"
+        "mov $1, %%rdi\n\t"
+        "mov $84, %%rsi\n\t"
+        "syscall"
+        : "=a"(ret)
+        :
+        : "rdi", "rsi", "rcx", "r11", "memory"
+    );
+    return ret == 1;
 }
 
 int test_filesystem() {
